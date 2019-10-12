@@ -1,0 +1,24 @@
+server:
+  port: 8091
+  context-path: /fms
+
+file:
+  rootFolder: /home/ec2-user/FMS
+
+info:
+    app.name: File Management System Service
+    build.version: 0.1.0-XXX
+
+spring:
+ jpa:
+    database: h2
+    show-sql: true
+ datasource:
+    platform: h2
+    url: jdbc:h2:mem:FMS
+    username: sa
+    password:
+    driverClassName: org.h2.Driver
+
+multipart:
+  maxFileSize: -1
