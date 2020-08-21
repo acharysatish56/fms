@@ -9,6 +9,7 @@ import org.springframework.core.io.FileSystemResource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.fms.core.common.FunctionUtils.asTwoTrack;
 
@@ -32,7 +33,8 @@ public class DocumentFacade {
 
     public static Reader<DocumentRepository, Promise<FileSystemResource>> getFile(final Long id) {
         return Reader.of(repo -> React.of(id)
-                .then(repo::findOne)
+                .then(repo::findById)
+                .then(Optional::get)
                 .then(DocumentModel::getFileLocation)
                 .then(FileSystemResource::new)
                 .getPromise());
@@ -50,7 +52,7 @@ public class DocumentFacade {
     public static Reader<DocumentRepository, Promise<Long>> removeFile(final Long theId) {
         return Reader.of(repo -> React
                 .of(() -> theId)
-                .thenV(repo::delete)
+                .thenV(repo::deleteById)
                 .getPromise());
     }
 }

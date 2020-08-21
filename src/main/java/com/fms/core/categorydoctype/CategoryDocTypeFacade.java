@@ -9,6 +9,7 @@ import com.fms.core.repository.UploadCategoryRepository;
 import javaslang.Tuple;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static com.fms.core.common.FunctionUtils.asList;
@@ -18,7 +19,6 @@ import static com.fms.core.uploadcategory.UploadCategoryFacade.findByName;
 public class CategoryDocTypeFacade {
 
     /**
-     *
      * @param info
      * @return
      */
@@ -26,16 +26,15 @@ public class CategoryDocTypeFacade {
         return Reader.of(config -> React.of(info)
                 .thenP(findUploadCategory().with(config.getUploadCategoryRepository()))
                 .then(asTwoTrack(
-                    uc -> CategoryDocTypeConverter.convert(info).apply(uc)))
+                        uc -> CategoryDocTypeConverter.convert(info).apply(uc)))
                 .then(asTwoTrack(
-                    uc -> config.getCategoryDocTypeRepository().save(uc)))
+                        uc -> config.getCategoryDocTypeRepository().save(uc)))
                 .then(asTwoTrack(
-                    uc -> CategoryDocTypeConverter.convertTo(uc)))
+                        uc -> CategoryDocTypeConverter.convertTo(uc)))
                 .getPromise());
     }
 
     /**
-     *
      * @return
      */
     public static Reader<CategoryDocTypeRepository, Promise<TwoTrack<List<CategoryDocTypeInfo>>>> findAll() {
@@ -46,32 +45,32 @@ public class CategoryDocTypeFacade {
     }
 
     /**
-     *
      * @param id
      * @return
      */
     public static Reader<CategoryDocTypeRepository, Promise<TwoTrack<CategoryDocTypeInfo>>> find(final Long id) {
         final Reader<CategoryDocTypeRepository, Promise<TwoTrack<CategoryDocTypeInfo>>> reader =
-            Reader.of(repo -> React.of(id)
-                .then(repo::findOne)
-                .then(TwoTrack::ofNullable)
-                .then(FunctionUtils.asTwoTrack(CategoryDocTypeConverter::convertTo))
-                .getPromise());
+                Reader.of(repo -> React.of(id)
+                        .then(repo::findById)
+                        .then(Optional::get)
+                        .then(TwoTrack::ofNullable)
+                        .then(FunctionUtils.asTwoTrack(CategoryDocTypeConverter::convertTo))
+                        .getPromise());
         return reader;
     }
 
-    public static Reader<CategoryDocTypeRepository,Promise<TwoTrack<CategoryDocType>>> findCategoryDocType(
-                                                                                                        final Long id) {
+    public static Reader<CategoryDocTypeRepository, Promise<TwoTrack<CategoryDocType>>> findCategoryDocType(
+            final Long id) {
         return Reader.of(repo -> getCategoryDocTypeReact(id).with(repo).then(TwoTrack::ofNullable).getPromise());
     }
 
     private static Reader<CategoryDocTypeRepository, React<CategoryDocType>> getCategoryDocTypeReact(final Long id) {
-        return Reader.of(repo -> React.of(() -> repo.findOne(id)));
+        return Reader.of(repo -> React.of(() -> repo.findById(id)).then(Optional::get));
     }
 
     private static Reader<UploadCategoryRepository, Function<CategoryDocTypeInfo, Promise<TwoTrack<UploadCategory>>>>
-                                                                                                  findUploadCategory() {
-        return Reader.of(repo ->  cdtInfo -> findByName(cdtInfo.getUploadCategoryName()).with(repo));
+    findUploadCategory() {
+        return Reader.of(repo -> cdtInfo -> findByName(cdtInfo.getUploadCategoryName()).with(repo));
     }
 
     public static Reader<FmsConfig, Promise<TwoTrack<CategoryDocTypeInfo>>> update(final Long id,
@@ -79,17 +78,17 @@ public class CategoryDocTypeFacade {
         return Reader.of(config -> React.of(info)
                 .thenP(findUploadCategory().with(config.getUploadCategoryRepository()))
                 .then(asTwoTrack(
-                             uc -> CategoryDocTypeConverter.convertWithId(info).apply(Tuple.of(uc, id))))
+                        uc -> CategoryDocTypeConverter.convertWithId(info).apply(Tuple.of(uc, id))))
                 .then(asTwoTrack(
-                             cdt -> config.getCategoryDocTypeRepository().saveAndFlush(cdt)))
+                        cdt -> config.getCategoryDocTypeRepository().saveAndFlush(cdt)))
                 .then(asTwoTrack(
-                             CategoryDocTypeConverter::convertTo))
+                        CategoryDocTypeConverter::convertTo))
                 .getPromise());
     }
 
     public static Reader<CategoryDocTypeRepository, Promise<Long>> delete(final Long id) {
         return Reader.of(repo -> React.of(id)
-                .thenV(repo::delete)
+                .thenV(repo::deleteById)
                 .getPromise());
     }
 }
